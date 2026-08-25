@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HopacPlus/HopacPlus.fsproj" />
+  </Folder>
+</Solution>
