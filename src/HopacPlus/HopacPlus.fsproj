@@ -7,7 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Hopac.FSharpPlus.fs" />
+    <Compile Include="Prelude.fs" />
+    <Compile Include="Job.fs" />
+    <Compile Include="Alt.fs" />
+    <Compile Include="Builders.fs" />
+    <Compile Include="Extensions.fs" />
+    <Compile Include="TopLevel.fs" />
+    <Compile Include="Infixes.fs" />
   </ItemGroup>
 
   <ItemGroup>
