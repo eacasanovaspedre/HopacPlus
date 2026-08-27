@@ -41,7 +41,7 @@ let tests =
               eq 8 (run (Job.delayWith (fun x -> Job.result (x * 2)) 4))
               eq 1 (run (Job.join (Job.result (Job.result 1))))
               eq 3 (run (Job.apply (Job.result 1) (Job.result ((+) 2))))
-              eq () (run (Job.Ignore(Job.result 1)))
+              eq () (run (Job.Ignore (Job.result 1)))
 
           testCase "tryIn tryWith tryFinally catch"
           <| fun () ->
@@ -76,7 +76,7 @@ let tests =
               | other -> failtestf "unexpected %A" other
 
               match run (Job.catch (Job.raises (TestExn "e"))) with
-              | Choice2Of2(:? TestExn) -> ()
+              | Choice2Of2 (:? TestExn) -> ()
               | other -> failtestf "unexpected %A" other
 
           testCase "using useIn"
@@ -129,23 +129,53 @@ let tests =
 
           testCase "seq and con collect"
           <| fun () ->
-              let xs = run (Job.seqCollect [ Job.result 1; Job.result 2; Job.result 3 ])
-              eq [ 1; 2; 3 ] (List.ofSeq xs)
+              let xs =
+                  run (
+                      Job.seqCollect
+                          [ Job.result 1
+                            Job.result 2
+                            Job.result 3 ]
+                  )
 
-              let ys = run (Job.conCollect [ Job.result 4; Job.result 5 ])
-              Expect.containsAll (List.ofSeq ys) [ 4; 5 ] ""
+              eq
+                  [ 1
+                    2
+                    3 ]
+                  (List.ofSeq xs)
 
-              run (Job.seqIgnore [ Job.result 1; Job.result 2 ])
-              run (Job.conIgnore [ Job.result 1; Job.result 2 ])
+              let ys =
+                  run (
+                      Job.conCollect
+                          [ Job.result 4
+                            Job.result 5 ]
+                  )
+
+              Expect.containsAll
+                  (List.ofSeq ys)
+                  [ 4
+                    5 ]
+                  ""
+
+              run (
+                  Job.seqIgnore
+                      [ Job.result 1
+                        Job.result 2 ]
+              )
+
+              run (
+                  Job.conIgnore
+                      [ Job.result 1
+                        Job.result 2 ]
+              )
 
           testCase "async and task"
           <| fun () ->
               eq 3 (run (Job.fromAsync (async { return 3 })))
-              eq 3 (Async.RunSynchronously(Job.toAsync (Job.result 3)))
+              eq 3 (Async.RunSynchronously (Job.toAsync (Job.result 3)))
               eq 4 (run (Job.bindAsync (fun x -> Job.result (x + 1)) (async { return 3 })))
               eq 5 (run (Job.fromTask (fun () -> Task.FromResult 5)))
               eq () (run (Job.fromUnitTask (fun () -> Task.CompletedTask)))
-              eq 6 (run (Job.liftTask (fun x -> Task.FromResult(x + 1)) 5))
+              eq 6 (run (Job.liftTask (fun x -> Task.FromResult (x + 1)) 5))
               eq () (run (Job.liftUnitTask (fun _ -> Task.CompletedTask) 1))
               eq 7 (run (Job.awaitTask (Task.FromResult 7)))
               eq () (run (Job.awaitUnitTask Task.CompletedTask))
@@ -154,7 +184,7 @@ let tests =
 
           testCase "start and queue fill an IVar"
           <| fun () ->
-              let iv = Hopac.IVar()
+              let iv = IVar.create ()
 
               eq
                   1
@@ -165,7 +195,7 @@ let tests =
                       }
                   ))
 
-              let iv2 = Hopac.IVar()
+              let iv2 = IVar.create ()
 
               eq
                   2
@@ -178,7 +208,7 @@ let tests =
 
           testCase "abort in a started job does not kill the parent"
           <| fun () ->
-              let iv = Hopac.IVar()
+              let iv = IVar.create ()
 
               eq
                   1
@@ -229,15 +259,15 @@ let tests =
               eq 1 (run (Job.result 1))
               eq 2 (runDelay (fun () -> Job.result 2))
 
-              let iv = Hopac.IVar()
+              let iv = IVar.create ()
               start (iv *<= 3)
-              eq 3 (runNative iv)
+              eq 3 (run iv)
 
-              let iv2 = Hopac.IVar()
+              let iv2 = IVar.create ()
               queue (iv2 *<= 4)
-              eq 4 (runNative iv2)
+              eq 4 (run iv2)
 
-              eq 5 (runNative (memo (Job.result 5)))
+              eq 5 (run (memo (Job.result 5)))
 
           testProperty "map id" <| fun (x: int) -> run (Job.map id (Job.result x)) = x
 

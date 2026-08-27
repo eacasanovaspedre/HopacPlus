@@ -3,7 +3,7 @@ module HopacPlus.Infixes
 open Hopac
 open HopacPlus
 
-module HopacInfixes = Hopac.Infixes
+module HopacInfixes = Infixes
 
 // <summary>
 /// Creates an alternative that, using the given job constructor, constructs a
@@ -11,7 +11,11 @@ module HopacInfixes = Hopac.Infixes
 /// commits on taking the reply from the reply channel.  See also: <c>*&lt;+-&gt;-</c>.
 /// </summary>
 let inline ( *<+->= ) qCh ([<InlineIfLambda>] rCh2n2qJ) =
-    Alt(HopacInfixes.( *<+->=) qCh (fun rCh nack -> Job.toHopac (rCh2n2qJ rCh nack)))
+    Alt(
+        HopacInfixes.( *<+->=)
+            (Ch.toHopac qCh)
+            (fun rCh nack -> Job.toHopac (rCh2n2qJ (Ch rCh) (Promise nack)))
+    )
 
 /// <summary>
 /// Creates an alternative that, using the given function, constructs a query
@@ -20,7 +24,8 @@ let inline ( *<+->= ) qCh ([<InlineIfLambda>] rCh2n2qJ) =
 /// common use case of <c>Alt.withNackJob</c> and is a slightly less expressive
 /// form of <c>*&lt;+-&gt;=</c>.  See also: <c>*&lt;-=&gt;-</c>.
 /// </summary>
-let inline ( *<+->- ) qCh ([<InlineIfLambda>] rCh2n2q) = Alt(HopacInfixes.( *<+->-) qCh rCh2n2q)
+let inline ( *<+->- ) qCh ([<InlineIfLambda>] rCh2n2q) =
+    Alt(HopacInfixes.( *<+->-) (Ch.toHopac qCh) (fun rCh nack -> rCh2n2q (Ch rCh) (Promise nack)))
 
 /// <summary>
 /// Creates an alternative that, using the given job constructor, constructs a
@@ -28,7 +33,7 @@ let inline ( *<+->- ) qCh ([<InlineIfLambda>] rCh2n2q) = Alt(HopacInfixes.( *<+-
 /// reply variable.  See also: <c>*&lt;-=&gt;-</c>.
 /// </summary>
 let inline ( *<-=>= ) qCh ([<InlineIfLambda>] rI2qJ) =
-    Alt(HopacInfixes.( *<-=>=) qCh (Job.toHopacF rI2qJ))
+    Alt(HopacInfixes.( *<-=>=) (Ch.toHopac qCh) (fun rI -> Job.toHopac (rI2qJ (IVar rI))))
 
 /// <summary>
 /// Creates an alternative that, using the given function, constructs a query
@@ -37,7 +42,8 @@ let inline ( *<-=>= ) qCh ([<InlineIfLambda>] rI2qJ) =
 /// <c>Alt.prepareFun</c> and is a slightly less expressive form of <c>*&lt;-=&gt;=</c>.
 /// See also: <c>*&lt;+-&gt;-</c>.
 /// </summary>
-let inline ( *<-=>- ) qCh ([<InlineIfLambda>] rI2q) = Alt(HopacInfixes.( *<-=>-) qCh rI2q)
+let inline ( *<-=>- ) qCh ([<InlineIfLambda>] rI2q) =
+    Alt(HopacInfixes.( *<-=>-) (Ch.toHopac qCh) (fun rI -> rI2q (IVar rI)))
 
 /// <summary>
 /// Creates an alternative that, using the given job constructor, constructs a
@@ -47,7 +53,7 @@ let inline ( *<-=>- ) qCh ([<InlineIfLambda>] rI2q) = Alt(HopacInfixes.( *<-=>-)
 /// should only be used as a job.
 /// </summary>
 let inline ( *<+=>= ) qCh ([<InlineIfLambda>] rI2qJ) =
-    Alt(HopacInfixes.( *<+=>=) qCh (Job.toHopacF rI2qJ))
+    Alt(HopacInfixes.( *<+=>=) (Ch.toHopac qCh) (fun rI -> Job.toHopac (rI2qJ (IVar rI))))
 
 /// <summary>
 /// Creates an alternative that, using the given function, constructs a query
@@ -56,7 +62,8 @@ let inline ( *<+=>= ) qCh ([<InlineIfLambda>] rI2qJ) =
 /// choice.  If this is not the case, then the resulting value should only be
 /// used as a job.
 /// </summary>
-let inline ( *<+=>- ) qCh ([<InlineIfLambda>] rI2q) = Alt(HopacInfixes.( *<+=>-) qCh rI2q)
+let inline ( *<+=>- ) qCh ([<InlineIfLambda>] rI2q) =
+    Alt(HopacInfixes.( *<+=>-) (Ch.toHopac qCh) (fun rI -> rI2q (IVar rI)))
 
 // Message passing
 
@@ -65,7 +72,7 @@ let inline ( *<+=>- ) qCh ([<InlineIfLambda>] rI2q) = Alt(HopacInfixes.( *<+=>-)
 /// given value on the given channel, and becomes available when another job
 /// offers to take the value.  <c>xCh *&lt;- x</c> is equivalent to <c>Ch.give xCh x</c>.
 /// </summary>
-let inline ( *<- ) xCh x = Alt(HopacInfixes.( *<-) xCh x)
+let inline ( *<- ) xCh x = Alt(HopacInfixes.( *<-) (Ch.toHopac xCh) x)
 
 /// <summary>
 /// Creates a job that sends a value to another job on the given channel.  A
@@ -73,35 +80,35 @@ let inline ( *<- ) xCh x = Alt(HopacInfixes.( *<-) xCh x)
 /// wait for another job to give the value to.  <c>xCh *&lt;+ x</c> is equivalent to
 /// <c>Ch.send xCh x</c>.
 /// </summary>
-let inline ( *<+ ) xCh x = Job(HopacInfixes.( *<+) xCh x)
+let inline ( *<+ ) xCh x = Job(HopacInfixes.( *<+) (Ch.toHopac xCh) x)
 
 /// <summary>
 /// Creates a job that writes to the given write once variable.  It is an
 /// error to write to a single <c>IVar</c> more than once.  <c>xI *&lt;= x</c> is
 /// equivalent to <c>IVar.fill xI x</c>.
 /// </summary>
-let inline ( *<= ) xI x = Job(HopacInfixes.( *<=) xI x)
+let inline ( *<= ) xI x = Job(HopacInfixes.( *<=) (IVar.toHopac xI) x)
 
 /// <summary>
 /// Creates a job that writes the given exception to the given write once
 /// variable.  It is an error to write to a single <c>IVar</c> more than once.
 /// <c>xI *&lt;=! e</c> is equivalent to <c>IVar.fillFailure xI e</c>.
 /// </summary>
-let inline ( *<=! ) xI e = Job(HopacInfixes.( *<=!) xI e)
+let inline ( *<=! ) xI e = Job(HopacInfixes.( *<=!) (IVar.toHopac xI) e)
 
 /// <summary>
 /// Creates a job that writes the given value to the serialized variable.  It
 /// is an error to write to a <c>MVar</c> that is full.  <c>xM *&lt;&lt;= x</c> is
 /// equivalent to <c>MVar.fill xM x</c>.
 /// </summary>
-let inline ( *<<= ) xM x = Job(HopacInfixes.( *<<=) xM x)
+let inline ( *<<= ) xM x = Job(HopacInfixes.( *<<=) (MVar.toHopac xM) x)
 
 /// <summary>
 /// Creates a job that sends the given value to the specified mailbox.  This
 /// operation never blocks.  <c>xMb *&lt;&lt;+ x</c> is equivalent to
 /// <c>Mailbox.send xMb x</c>.
 /// </summary>
-let inline ( *<<+ ) xMb x = Job(HopacInfixes.( *<<+) xMb x)
+let inline ( *<<+ ) xMb x = Job(HopacInfixes.( *<<+) (Mailbox.toHopac xMb) x)
 
 // After actions
 

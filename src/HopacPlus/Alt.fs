@@ -25,8 +25,7 @@ type Promise<'T> =
 /// Operations on first-class synchronous operations or alternatives.
 /// </summary>
 module Alt =
-    let inline toHopac (x: ^a) : #HopacAlt<'t> =
-        (^a: (static member ToHopac: ^a -> #HopacAlt<'t>) x)
+    let inline toHopac (x: ^a) : #HopacAlt<'t> = (^a: (static member ToHopac: ^a -> #HopacAlt<'t>) x)
 
     let inline internal toHopacF ([<InlineIfLambda>] f) x = x |> f |> toHopac
 
@@ -97,8 +96,7 @@ module Alt =
     /// alternatives is.  See also: choosy, <c>&lt;|&gt;</c>.
     /// Note that <c>choose []</c> is equivalent to <c>never ()</c>.
     /// </summary>
-    let inline choose (xAs: '``Alt<'x>`` seq) : Alt<'x> =
-        xAs |> Seq.map toHopac |> HopacAlt.choose |> Alt
+    let inline choose (xAs: '``Alt<'x>`` seq) : Alt<'x> = xAs |> Seq.map toHopac |> HopacAlt.choose |> Alt
 
     /// <summary>
     /// <c>choosy xAs</c> (read: choose array) is an optimized version of <c>choose xAs</c>
@@ -113,8 +111,7 @@ module Alt =
     /// alternatives from the sequence are instantiated will be determined at
     /// random each time the alternative is used.  See also: <c>&lt;~&gt;</c>.
     /// </summary>
-    let inline chooser (xAs: '``Alt<'x>`` seq) : Alt<'x> =
-        xAs |> Seq.map toHopac |> HopacAlt.chooser |> Alt
+    let inline chooser (xAs: '``Alt<'x>`` seq) : Alt<'x> = xAs |> Seq.map toHopac |> HopacAlt.chooser |> Alt
 
     /// <summary>
     /// Creates an alternative computed at instantiation time with
@@ -145,11 +142,7 @@ module Alt =
     /// given job.  <c>prepare xAJ</c> is equivalent to <c>prepareJob &lt;| fun () -&gt; xAJ</c>.
     /// </summary>
     let inline prepare (xAJ: '``Job<Alt<'x>>``) : Alt<'x> =
-        xAJ
-        |> Job.toHopac
-        |> HopacJob.map toHopac
-        |> HopacAlt.prepare
-        |> Alt
+        xAJ |> Job.toHopac |> HopacJob.map toHopac |> HopacAlt.prepare |> Alt
 
     /// <summary>
     /// Creates an alternative that is computed at instantiation time with the
@@ -229,8 +222,7 @@ module Alt =
     /// a in a choice before the operation completes, then the operation is
     /// cancelled. See also: Job.fromBeginEnd.
     /// </summary>
-    let inline fromBeginEnd doBegin doEnd doCancel =
-        HopacAlt.fromBeginEnd doBegin doEnd doCancel |> Alt
+    let inline fromBeginEnd doBegin doEnd doCancel = HopacAlt.fromBeginEnd doBegin doEnd doCancel |> Alt
 
     /// <summary>
     /// Creates an alternative that, when instantiated, starts the given

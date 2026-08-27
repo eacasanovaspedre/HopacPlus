@@ -117,4 +117,28 @@ let tests =
                   }
                   |> run
 
-              eq 6 result ]
+              eq 6 result
+
+          testCase "let! binds Promise, Ch, IVar, MVar and Mailbox"
+          <| fun () ->
+              let ch = Ch.create ()
+              let iv = IVar.create ()
+              let mv = MVar.createFull 4
+              let mb = Mailbox.create ()
+
+              let result =
+                  job {
+                      do! Ch.send ch 1
+                      let! a = ch
+                      do! IVar.fill iv 2
+                      let! b = iv
+                      let! c = Promise.Now.withValue 3
+                      let! d = mv
+                      do! MVar.fill mv d
+                      do! Mailbox.send mb 5
+                      let! e = mb
+                      return a + b + c + d + e
+                  }
+                  |> run
+
+              eq 15 result ]

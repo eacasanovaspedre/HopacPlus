@@ -37,4 +37,11 @@ let tests =
           testCase "Alt map and Empty"
           <| fun () ->
               eq 2 (run (map ((+) 1) (Alt.always 1)))
-              eq 1 (run (Alt.choose [ Alt.Empty(); Alt.always 1 ])) ]
+
+              eq
+                  1
+                  (run (
+                      Alt.choose
+                          [ Alt.Empty ()
+                            Alt.always 1 ]
+                  )) ]

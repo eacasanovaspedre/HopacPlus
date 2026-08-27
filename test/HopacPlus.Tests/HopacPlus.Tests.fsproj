@@ -16,12 +16,24 @@
     <Compile Include="InfixTests.fs" />
     <Compile Include="BuilderTests.fs" />
     <Compile Include="FSharpPlusTests.fs" />
+    <Compile Include="PromiseTests.fs" />
+    <Compile Include="ChTests.fs" />
+    <Compile Include="IVarTests.fs" />
+    <Compile Include="MVarTests.fs" />
+    <Compile Include="MailboxTests.fs" />
+    <Compile Include="BoundedMbTests.fs" />
+    <Compile Include="LatchTests.fs" />
+    <Compile Include="LockTests.fs" />
+    <Compile Include="SchedulerTests.fs" />
+    <Compile Include="ExtensionTests.fs" />
+    <Compile Include="StreamTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Expecto" Version="11.1.0" />
     <PackageReference Include="Expecto.FsCheck" Version="11.1.0" />
+    <PackageReference Include="FSharpPlus" Version="1.9.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.16.1" />
   </ItemGroup>

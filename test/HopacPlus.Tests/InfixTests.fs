@@ -76,7 +76,7 @@ let tests =
 
           testCase "message passing"
           <| fun () ->
-              let ch = Hopac.Ch()
+              let ch = Ch.create ()
 
               eq
                   1
@@ -87,7 +87,7 @@ let tests =
                       }
                   ))
 
-              let ch2 = Hopac.Ch()
+              let ch2 = Ch.create ()
 
               eq
                   2
@@ -98,7 +98,7 @@ let tests =
                       }
                   ))
 
-              let iv = Hopac.IVar()
+              let iv = IVar.create ()
 
               eq
                   3
@@ -109,7 +109,7 @@ let tests =
                       }
                   ))
 
-              let ivf = Hopac.IVar()
+              let ivf = IVar.create ()
 
               throws (
                   job {
@@ -118,7 +118,7 @@ let tests =
                   }
               )
 
-              let mv = Hopac.MVar()
+              let mv = MVar.create ()
 
               eq
                   4
@@ -129,7 +129,7 @@ let tests =
                       }
                   ))
 
-              let mb = Hopac.Mailbox()
+              let mb = Mailbox.create ()
 
               eq
                   5
@@ -146,7 +146,7 @@ let tests =
                   2
                   (run (
                       job {
-                          let q = Hopac.Ch<int * Hopac.IVar<int>>()
+                          let q = Ch.create ()
 
                           do!
                               Job.start (
