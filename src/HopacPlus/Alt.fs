@@ -25,13 +25,10 @@ type Promise<'T> =
 /// Operations on first-class synchronous operations or alternatives.
 /// </summary>
 module Alt =
-    let inline internal toHopac (x: ^a) : #HopacAlt<'t> =
+    let inline toHopac (x: ^a) : #HopacAlt<'t> =
         (^a: (static member ToHopac: ^a -> #HopacAlt<'t>) x)
 
-    let inline internal toHopacF ([<InlineIfLambda>] f) = f >> toHopac
-
-    let inline private toHopacPromise (x: ^a) : #HopacPromise<'t> =
-        (^a: (static member ToHopac: ^a -> #HopacPromise<'t>) x)
+    let inline internal toHopacF ([<InlineIfLambda>] f) x = x |> f |> toHopac
 
     /// <summary>
     /// Creates an alternative that is always available and results in the given
@@ -39,38 +36,38 @@ module Alt =
     /// Note that when there are alternatives immediately available in a choice,
     /// the first such alternative will be committed to.
     /// </summary>
-    let inline always x = Alt(HopacAlt.always x)
+    let inline always x = HopacAlt.always x |> Alt
 
     /// <summary>
     /// Returns an alternative that is always available and results in the unit
     /// value.  <c>unit ()</c> is an optimized version of <c>always ()</c>.
     /// </summary>
-    let inline unit () = Alt(HopacAlt.unit ())
+    let inline unit () = HopacAlt.unit () |> Alt
 
     /// <summary>
     /// Returns an alternative that can be committed to once and that produces the
     /// given value.
     /// </summary>
-    let inline once x = Alt(HopacAlt.once x)
+    let inline once x = HopacAlt.once x |> Alt
 
     /// <summary>
     /// Creates an alternative that is never available.
     /// Note that synchronizing on <c>never ()</c>, without other alternatives is
     /// equivalent to performing <c>abort ()</c>.
     /// </summary>
-    let inline never () = Alt(HopacAlt.never ())
+    let inline never () = HopacAlt.never () |> Alt
 
     /// <summary>
     /// Returns an alternative that is never available.  <c>zero ()</c> is an optimized
     /// version of <c>never ()</c>.
     /// </summary>
-    let inline zero () = Alt(HopacAlt.zero ())
+    let inline zero () = HopacAlt.zero () |> Alt
 
     /// <summary>
     /// Creates an alternative that has the effect of raising the specified
     /// exception.  <c>raises e</c> is equivalent to <c>prepareFun &lt;| fun () -&gt; raise e</c>.
     /// </summary>
-    let inline raises e = Alt(HopacAlt.raises e)
+    let inline raises e = HopacAlt.raises e |> Alt
 
     /// <summary>
     /// <c>Ignore xA</c> is equivalent to <c>xA ^-&gt; always ()</c>.
@@ -92,7 +89,7 @@ module Alt =
     /// and processed with the resulting job after the given alternative has been
     /// committed to.  This is the same as <c>^=&gt;</c> with the arguments flipped.
     /// </summary>
-    let inline afterJob ([<InlineIfLambda>] x2yJ: 'x -> '``Job<'y>``) (x: 'x) : Alt<'y> =
+    let inline afterJob ([<InlineIfLambda>] x2yJ: 'x -> '``Job<'y>``) (x: '``Alt<'x>``) : Alt<'y> =
         HopacAlt.afterJob (Job.toHopacF x2yJ) (toHopac x) |> Alt
 
     /// <summary>
@@ -148,7 +145,11 @@ module Alt =
     /// given job.  <c>prepare xAJ</c> is equivalent to <c>prepareJob &lt;| fun () -&gt; xAJ</c>.
     /// </summary>
     let inline prepare (xAJ: '``Job<Alt<'x>>``) : Alt<'x> =
-        xAJ |> Job.toHopac |> HopacJob.map toHopac |> HopacAlt.prepare |> Alt
+        xAJ
+        |> Job.toHopac
+        |> HopacJob.map toHopac
+        |> HopacAlt.prepare
+        |> Alt
 
     /// <summary>
     /// Creates an alternative that is computed at instantiation time with the
@@ -172,13 +173,13 @@ module Alt =
     /// one being committed to.  See also: wrapAbortFun, withNackJob.
     /// </summary>
     let inline wrapAbortJob (uJ: '``Job<unit>``) (x: '``Alt<'x>``) : Alt<'x> =
-        Alt.wrapAbortJob (Job.toHopac uJ) (toHopac x) |> Alt
+        HopacAlt.wrapAbortJob (Job.toHopac uJ) (toHopac x) |> Alt
 
     /// <summary>
     /// <c>wrapAbortFun u2u xA</c> is equivalent to <c>wrapAbortJob (Job.thunk u2u) xA</c>.
     /// </summary>
     let inline wrapAbortFun ([<InlineIfLambda>] u2u) (x: '``Alt<'x>``) : Alt<'x> =
-        Alt.wrapAbortFun u2u (toHopac x) |> Alt
+        HopacAlt.wrapAbortFun u2u (toHopac x) |> Alt
 
     /// <summary>
     /// Implements the <c>try-in-unless</c> exception handling construct for
@@ -196,7 +197,7 @@ module Alt =
         ([<InlineIfLambda>] x2yJ: 'x -> '``Job<'y>``)
         ([<InlineIfLambda>] e2yJ: exn -> '``Job<'y>``)
         : Alt<'x> =
-        Alt.tryIn (toHopac x) (Job.toHopacF x2yJ) (Job.toHopacF e2yJ) |> Alt
+        HopacAlt.tryIn (toHopac x) (Job.toHopacF x2yJ) (Job.toHopacF e2yJ) |> Alt
 
     /// <summary>
     /// Implements a variation of the <c>try-finally</c> exception handling construct
@@ -207,7 +208,7 @@ module Alt =
     /// action to the non-committed case.
     /// </summary>
     let inline tryFinallyFun (x: '``Alt<'x>``) ([<InlineIfLambda>] u2u) : Alt<'x> =
-        Alt.tryFinallyFun (toHopac x) u2u |> Alt
+        HopacAlt.tryFinallyFun (toHopac x) u2u |> Alt
 
     /// <summary>
     /// Implements a variation of the <c>try-finally</c> exception handling construct
@@ -238,7 +239,7 @@ module Alt =
     /// in a choice before the operation completes, then the operation is
     /// cancelled.  See also: Job.fromAsync.
     /// </summary>
-    let inline fromAsync xA = Alt.fromAsync xA |> Alt
+    let inline fromAsync xA = HopacAlt.fromAsync xA |> Alt
 
     /// <summary>
     /// Creates an async operation that starts the given alternative and waits for
@@ -248,7 +249,7 @@ module Alt =
     /// cancellation is not transactional and <c>Alt.toAsync &gt;&gt; Alt.fromAsync</c> is
     /// not the identity function.  See also: Job.toAsync.
     /// </summary>
-    let inline toAsync (x: '``Alt<'x>``) : Async<'x> = Alt.toAsync (toHopac x)
+    let inline toAsync (x: '``Alt<'x>``) : Async<'x> = HopacAlt.toAsync (toHopac x)
 
     /// <summary>
     /// Creates an alternative that, when instantiated, calls the given function
@@ -257,7 +258,7 @@ module Alt =
     /// alternative is committed to in a choice before the task completes, then
     /// the token will be cancelled.  See also: Job.fromTask.
     /// </summary>
-    let inline fromTask ([<InlineIfLambda>] u2xT: CancellationToken -> Task<_>) = Alt.fromTask u2xT |> Alt
+    let inline fromTask ([<InlineIfLambda>] u2xT: CancellationToken -> Task<_>) = HopacAlt.fromTask u2xT |> Alt
 
     /// <summary>
     /// Creates an alternative that, when instantiated, calls the given function
@@ -266,7 +267,7 @@ module Alt =
     /// alternative is committed to in a choice before the task completes, then
     /// the token will be cancelled.  See also: Job.fromUnitTask.
     /// </summary>
-    let inline fromUnitTask ([<InlineIfLambda>] u2uT: CancellationToken -> Task) = Alt.fromUnitTask u2uT |> Alt
+    let inline fromUnitTask ([<InlineIfLambda>] u2uT: CancellationToken -> Task) = HopacAlt.fromUnitTask u2uT |> Alt
 
     /// <summary>
     /// Given an alternative, creates a new alternative that behaves exactly like
@@ -275,19 +276,7 @@ module Alt =
     /// operation is provided for debugging purposes.  You can always break
     /// abstractions using reflection.  See also: Job.paranoid.
     /// </summary>
-    let inline paranoid (x: '``Alt<'x>``) : Alt<'x> = Alt.paranoid (toHopac x) |> Alt
-
-    /// <summary>
-    /// Creates an alternative that, after instantiation, becomes available after
-    /// the specified time span.
-    /// </summary>
-    let inline timeOut ts = timeOut ts |> Alt
-
-    /// <summary>
-    /// <c>timeOutMillis n</c> is equivalent to <c>timeOut &lt;&lt; TimeSpan.FromMilliseconds
-    /// &lt;| float n</c>.
-    /// </summary>
-    let inline timeOutMillis n = timeOutMillis n |> Alt
+    let inline paranoid (x: '``Alt<'x>``) : Alt<'x> = HopacAlt.paranoid (toHopac x) |> Alt
 
     /// <summary>
     /// Creates an alternative that yields the thread of execution to any ready
@@ -297,7 +286,7 @@ module Alt =
 
 type Alt<'T> with
     static member inline Return x = Alt.always x
-    static member inline Map (x, [<InlineIfLambda>] f) = Alt.afterFun f x
+    static member inline Map(x, [<InlineIfLambda>] f) = Alt.afterFun f x
 
     static member inline (>>=)(x, [<InlineIfLambda>] f) = Alt.afterJob f x
 

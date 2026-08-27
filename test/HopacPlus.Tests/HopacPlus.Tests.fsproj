@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Helpers.fs" />
+    <Compile Include="JobTests.fs" />
+    <Compile Include="AltTests.fs" />
+    <Compile Include="InfixTests.fs" />
+    <Compile Include="BuilderTests.fs" />
+    <Compile Include="FSharpPlusTests.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Expecto" Version="11.1.0" />
+    <PackageReference Include="Expecto.FsCheck" Version="11.1.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.16.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\HopacPlus\HopacPlus.fsproj" />
+  </ItemGroup>
+
+</Project>

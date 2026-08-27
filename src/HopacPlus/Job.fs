@@ -12,23 +12,19 @@ module HopacJob = Hopac.Job
 /// <summary>A Job wrapped so FSharpPlus can resolve map / bind / monad.</summary>
 [<Struct>]
 type Job<'T> =
-    internal
     | Job of HopacJob<'T>
 
     static member inline ToHopac(Job j) : HopacJob<'T> = j
 
 /// <summary>Operations on jobs.</summary>
 module Job =
-    let inline internal toHopac (x: ^a) : #HopacJob<'t> =
+    let inline toHopac (x: ^a) : #HopacJob<'t> =
         (^a: (static member ToHopac: ^a -> #HopacJob<'t>) x)
 
-    let inline internal toHopacF ([<InlineIfLambda>] f) = f >> toHopac
+    let inline toHopacF ([<InlineIfLambda>] f) x = toHopac (f x)
+
+    let inline toJob x = Job(toHopac x)
     
-    let inline internal toJob x = Job (toHopac x)
-
-    // /// <summary>View a JobM or AltM as JobM. Wrap a Hopac Job with <c>ofJob</c>.</summary>
-    // let inline ofJobLike x = Job (toHopacJob x)
-
     /// <summary>
     /// Creates a job with the given result.  See also: lift, thunk, unit.
     /// </summary>
@@ -56,7 +52,7 @@ module Job =
     /// <summary>
     /// Creates a job that immediately terminates the current job.
     /// </summary>
-    let inline abort () = () |> Job.abort |> Job
+    let inline abort () = () |> HopacJob.abort |> Job
 
     /// <summary>
     /// Creates a job that has the effect of raising the specified exception.
@@ -68,7 +64,7 @@ module Job =
     /// Creates a job that runs the given job and maps the result of the job with
     /// the given function.  This is the same as <c>&gt;&gt;-</c> with the arguments flipped.
     /// </summary>
-    let inline map ([<InlineIfLambda>] x2y) (x: ^``Job<'a>``) = x |> toHopac |> HopacJob.map x2y |> Job
+    let inline map ([<InlineIfLambda>] x2y) (x) = x |> toHopac |> HopacJob.map x2y |> Job
 
     /// <summary>
     /// Creates a job that first runs the given job and then passes the result of
