@@ -5,8 +5,6 @@ open System.Security.Cryptography
 open System.Threading.Tasks
 open Hopac
 
-type HopacJob<'T> = Job<'T>
-
 module HopacJob = Hopac.Job
 
 /// <summary>A Job wrapped so FSharpPlus can resolve map / bind / monad.</summary>

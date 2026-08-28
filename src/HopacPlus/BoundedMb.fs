@@ -14,7 +14,7 @@ module BoundedMb =
     let inline toHopac (x: ^a) : #HopacBoundedMb<'t> = (^a: (static member ToHopac: ^a -> #HopacBoundedMb<'t>) x)
 
     /// <summary>Creates a new bounded mailbox with the given capacity.</summary>
-    let inline create n = Hopac.BoundedMb (n) |> BoundedMb
+    let inline create n = Hopac.BoundedMb n |> BoundedMb
 
     /// <summary>
     /// Selective synchronous operation to take a message from a bounded mailbox.

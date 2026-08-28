@@ -17,7 +17,7 @@ module MVar =
     let inline create () = Hopac.MVar () |> MVar
 
     /// <summary>Creates a new serialized variable filled with the given value.</summary>
-    let inline createFull x = Hopac.MVar (x) |> MVar
+    let inline createFull x = Hopac.MVar x |> MVar
 
     /// <summary>
     /// Creates a job that writes the given value to the serialized variable.  It

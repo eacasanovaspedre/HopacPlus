@@ -14,7 +14,7 @@ module Latch =
     let inline toHopac (x: ^a) : HopacLatch = (^a: (static member ToHopac: ^a -> HopacLatch) x)
 
     /// <summary>Creates a new latch with the given initial count.</summary>
-    let inline create n = Hopac.Latch (n) |> Latch
+    let inline create n = Hopac.Latch n |> Latch
 
     /// <summary>
     /// Returns a job that explicitly decrements the counter of the latch.  When

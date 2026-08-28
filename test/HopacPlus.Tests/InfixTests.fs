@@ -151,7 +151,7 @@ let tests =
                           do!
                               Job.start (
                                   job {
-                                      let! (n, rI) = q
+                                      let! n, rI = q
                                       do! (rI *<= (n + 1))
                                   }
                               )

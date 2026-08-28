@@ -1,6 +1,5 @@
 namespace HopacPlus
 
-open System
 open HopacPlus
 
 module HopacStream = Hopac.Stream
@@ -363,7 +362,7 @@ module Stream =
     /// <summary>Operations on stream properties.</summary>
     module Property =
         /// <summary>Creates a new property with the specified initial value.</summary>
-        let inline create x = Hopac.Stream.Property (x)
+        let inline create x = Hopac.Stream.Property x
 
         /// <summary>Gets the value of the property.</summary>
         let inline get (p: Property<'x>) = p.Value
@@ -442,34 +441,34 @@ module Stream =
     /// Hopac stream builder so Bind, For and While keep consistent join
     /// semantics.
     /// </summary>
-    type Builder(inner: HopacStream.Builder) =
-        /// <summary>Creates a builder that joins substreams with append.</summary>
-        new() = Builder (HopacStream.appended)
+    [<Struct>]
+    type Builder =
+        | Builder of inner: HopacStream.Builder
 
-        member inline _.Zero() : Stream<'x> = inner.Zero () |> ofHopac
+        member inline this.Zero() : Stream<'x> = let (Builder inner) = this in inner.Zero () |> ofHopac
 
-        member inline _.Yield(x) : Stream<'x> = inner.Yield x |> ofHopac
+        member inline this.Yield(x) : Stream<'x> = let (Builder inner) = this in inner.Yield x |> ofHopac
 
-        member inline _.YieldFrom(xs: Stream<'x>) = xs
+        member inline this.YieldFrom(xs: Stream<'x>) = xs
 
-        member inline _.Delay([<InlineIfLambda>] u2xs: unit -> Stream<'x>) = delay u2xs
+        member inline this.Delay([<InlineIfLambda>] u2xs: unit -> Stream<'x>) = delay u2xs
 
-        member inline _.Combine(xs: Stream<'x>, ys: Stream<'x>) : Stream<'x> =
-            inner.Combine (toHopac xs, toHopac ys) |> ofHopac
+        member inline this.Combine(xs: Stream<'x>, ys: Stream<'x>) : Stream<'x> =
+            let (Builder inner) = this in inner.Combine (toHopac xs, toHopac ys) |> ofHopac
 
-        member inline _.Combine'(xs: Alt<Hopac.Stream.Cons<'x>>, ys: Alt<Hopac.Stream.Cons<'x>>) =
-            inner.Combine' (Alt.toHopac xs, Alt.toHopac ys) |> Alt
+        member inline this.Combine'(xs: Alt<Hopac.Stream.Cons<'x>>, ys: Alt<Hopac.Stream.Cons<'x>>) =
+            let (Builder inner) = this in inner.Combine' (Alt.toHopac xs, Alt.toHopac ys) |> Alt
 
-        member inline _.Bind(xs: Stream<'x>, [<InlineIfLambda>] x2ys: 'x -> Stream<'y>) : Stream<'y> =
-            inner.Bind (toHopac xs, x2ys >> toHopac) |> ofHopac
+        member inline this.Bind(xs: Stream<'x>, [<InlineIfLambda>] x2ys: 'x -> Stream<'y>) : Stream<'y> =
+            let (Builder inner) = this in inner.Bind (toHopac xs, x2ys >> toHopac) |> ofHopac
 
-        member inline _.For(xs: seq<'x>, [<InlineIfLambda>] x2ys: 'x -> Stream<'y>) : Stream<'y> =
-            inner.For (xs, x2ys >> toHopac) |> ofHopac
+        member inline this.For(xs: seq<'x>, [<InlineIfLambda>] x2ys: 'x -> Stream<'y>) : Stream<'y> =
+            let (Builder inner) = this in inner.For (xs, x2ys >> toHopac) |> ofHopac
 
-        member inline _.While(u2b, xs: Stream<'x>) : Stream<'x> = inner.While (u2b, toHopac xs) |> ofHopac
+        member inline this.While(u2b, xs: Stream<'x>) : Stream<'x> = let (Builder inner) = this in inner.While (u2b, toHopac xs) |> ofHopac
 
-        member inline _.TryWith(xs: Stream<'x>, [<InlineIfLambda>] e2xs) : Stream<'x> =
-            inner.TryWith (toHopac xs, e2xs >> toHopac) |> ofHopac
+        member inline this.TryWith(xs: Stream<'x>, [<InlineIfLambda>] e2xs) : Stream<'x> =
+            let (Builder inner) = this in inner.TryWith (toHopac xs, e2xs >> toHopac) |> ofHopac
 
         member inline _.ReturnFrom(xs: Stream<'x>) = xs
 
@@ -477,25 +476,25 @@ module Stream =
     /// This builder joins substreams with amb' to produce a stream with the
     /// first results.
     /// </summary>
-    let ambed = Builder (HopacStream.ambed)
+    let ambed = Builder HopacStream.ambed
 
     /// <summary>
     /// This builder joins substreams with append' to produce a stream with all
     /// results in sequential order.
     /// </summary>
-    let appended = Builder (HopacStream.appended)
+    let appended = Builder HopacStream.appended
 
     /// <summary>
     /// This builder joins substreams with merge' to produce a stream with all
     /// results in completion order.
     /// </summary>
-    let merged = Builder (HopacStream.merged)
+    let merged = Builder HopacStream.merged
 
     /// <summary>
     /// This builder joins substreams with switch' to produce a stream with the
     /// latest results.
     /// </summary>
-    let switched = Builder (HopacStream.switched)
+    let switched = Builder HopacStream.switched
 
 /// <summary>Expression builder type for streams.</summary>
 type StreamBuilder = Stream.Builder
