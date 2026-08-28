@@ -3,13 +3,12 @@ name: Build and Publish
 on:
   push:
     branches: [master]
+    tags: ['v*.*.*']
   pull_request:
-  release:
-    types: [published]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name != 'release' }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
 
 permissions:
   contents: read
@@ -48,11 +47,11 @@ jobs:
 
   publish:
     needs: build
-    if: github.event_name == 'release'
+    if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     environment: nuget
     permissions:
-      contents: read
+      contents: write
       id-token: write
     steps:
       - uses: actions/checkout@v7
@@ -64,12 +63,12 @@ jobs:
 
       - name: Pack
         env:
-          TAG: ${{ github.event.release.tag_name }}
+          TAG: ${{ github.ref_name }}
         run: |
           VERSION="${TAG#v}"
           echo "Packing version ${VERSION}"
           if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
-            echo "::error::Release tag must be a SemVer version, with or without a 'v' prefix (e.g. v1.2.3 or 1.2.3)."
+            echo "::error::Tag must be a SemVer version with a 'v' prefix (e.g. v1.2.3)."
             exit 1
           fi
           dotnet pack src/HopacPlus/HopacPlus.fsproj \
@@ -89,3 +88,23 @@ jobs:
           --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
           --source ${{ env.NUGET_FEED }}
           --skip-duplicate
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          VERSION="${TAG#v}"
+          PRE_FLAGS=()
+          if [[ "$VERSION" == *-* ]]; then
+            PRE_FLAGS=(--prerelease)
+          fi
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" nupkg/* --clobber
+            if ((${#PRE_FLAGS[@]})); then
+              gh release edit "$TAG" "${PRE_FLAGS[@]}"
+            fi
+          else
+            gh release create "$TAG" nupkg/* --title "$TAG" --generate-notes "${PRE_FLAGS[@]}"
+          fi

@@ -1,5 +1,7 @@
 # HopacPlus (Hopac+)
 
+[![Build](https://github.com/eacasanovaspedre/HopacPlus/actions/workflows/nuget.yml/badge.svg?branch=master)](https://github.com/eacasanovaspedre/HopacPlus/actions/workflows/nuget.yml?query=branch%3Amaster)
+
 A drop-in F# API over [Hopac](https://github.com/Hopac/Hopac) that also works with [F#+](https://github.com/fsprojects/FSharpPlus).
 
 Hopac is a concurrent programming library for F#: lightweight jobs, first-class alternatives (`Alt`), and message-passing primitives (`Ch`, `IVar`, `MVar`, mailboxes, streams). F#+ is a generic programming library that discovers `map`, `bind`, `monad { }`, and similar operations through statically resolved type parameters.
@@ -85,7 +87,12 @@ Pack (override the version with `-p:PackageVersion=`):
 dotnet pack src/HopacPlus/HopacPlus.fsproj -c Release -p:PackageVersion=0.1.0
 ```
 
-Publishing to nuget.org is handled by `.github/workflows/nuget.yml` when you publish a GitHub Release. The release tag is the package version (`v0.1.0` or `0.1.0`).
+Publishing to nuget.org is handled by `.github/workflows/nuget.yml` when you push a version tag. That also creates a GitHub Release.
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
 
 Add a [Trusted Publishing](https://learn.microsoft.com/nuget/nuget-org/trusted-publishing) policy on nuget.org for this repository and workflow file `nuget.yml` (environment `nuget`), then set GitHub Actions variable or secret `NUGET_USER` to your nuget.org profile name (not email).
 
