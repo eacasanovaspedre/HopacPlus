@@ -87,9 +87,7 @@ dotnet pack src/HopacPlus/HopacPlus.fsproj -c Release -p:PackageVersion=0.1.0
 
 Publishing to nuget.org is handled by `.github/workflows/nuget.yml` when you publish a GitHub Release. The release tag is the package version (`v0.1.0` or `0.1.0`).
 
-Preferred: add a [Trusted Publishing](https://learn.microsoft.com/nuget/nuget-org/trusted-publishing) policy on nuget.org for this repository and workflow file `nuget.yml` (environment `nuget`), then set GitHub Actions variable or secret `NUGET_USER` to your nuget.org profile name (not email).
-
-Alternatively, set secret `NUGET_API_KEY` to a nuget.org API key.
+Add a [Trusted Publishing](https://learn.microsoft.com/nuget/nuget-org/trusted-publishing) policy on nuget.org for this repository and workflow file `nuget.yml` (environment `nuget`), then set GitHub Actions variable or secret `NUGET_USER` to your nuget.org profile name (not email).
 
 ## Benchmarks
 

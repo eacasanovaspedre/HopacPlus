@@ -77,22 +77,15 @@ jobs:
             -o nupkg \
             -p:PackageVersion="$VERSION"
 
-      - name: NuGet login (trusted publishing)
-        if: ${{ vars.NUGET_USER != '' || secrets.NUGET_USER != '' }}
+      - name: NuGet login
         id: login
         uses: NuGet/login@v1
         with:
           user: ${{ vars.NUGET_USER || secrets.NUGET_USER }}
 
       - name: Push to NuGet.org
-        env:
-          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY || secrets.NUGET_API_KEY }}
-        run: |
-          if [ -z "$NUGET_API_KEY" ]; then
-            echo "::error::Missing NuGet credentials. Set NUGET_USER (trusted publishing) or NUGET_API_KEY."
-            exit 1
-          fi
-          dotnet nuget push ./nupkg/*.nupkg \
-            --api-key "$NUGET_API_KEY" \
-            --source "$NUGET_FEED" \
-            --skip-duplicate
+        run: >
+          dotnet nuget push ./nupkg/*.nupkg
+          --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
+          --source ${{ env.NUGET_FEED }}
+          --skip-duplicate
