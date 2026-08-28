@@ -7,7 +7,7 @@ module HopacCh = Hopac.Ch
 type Ch<'T> =
     | Ch of HopacCh<'T>
 
-    static member inline ToHopac(Ch c) : HopacCh<'T> = c
+    static member ToHopac(Ch c) : HopacCh<'T> = c
 
 /// <summary>Operations on synchronous channels.</summary>
 module Ch =

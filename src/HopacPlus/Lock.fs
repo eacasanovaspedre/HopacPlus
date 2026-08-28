@@ -7,7 +7,7 @@ module HopacLock = Hopac.Lock
 type Lock =
     | Lock of HopacLock
 
-    static member inline ToHopac(Lock x) : HopacLock = x
+    static member ToHopac(Lock x) : HopacLock = x
 
 /// <summary>Operations on mutual exclusion locks.</summary>
 module Lock =

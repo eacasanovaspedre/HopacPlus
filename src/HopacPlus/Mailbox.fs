@@ -7,7 +7,7 @@ module HopacMailbox = Hopac.Mailbox
 type Mailbox<'T> =
     | Mailbox of HopacMailbox<'T>
 
-    static member inline ToHopac(Mailbox x) : HopacMailbox<'T> = x
+    static member ToHopac(Mailbox x) : HopacMailbox<'T> = x
 
 /// <summary>Operations on buffered mailboxes.</summary>
 module Mailbox =

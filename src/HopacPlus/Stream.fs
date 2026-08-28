@@ -9,7 +9,7 @@ module HopacStream = Hopac.Stream
 type Cons<'T> =
     | Cons of Hopac.Stream.Cons<'T>
 
-    static member inline ToHopac(Cons c) : Hopac.Stream.Cons<'T> = c
+    static member ToHopac(Cons c) : Hopac.Stream.Cons<'T> = c
 
 /// <summary>A non-deterministic stream of values called a choice stream.</summary>
 type Stream<'T> = Promise<Hopac.Stream.Cons<'T>>
@@ -19,21 +19,21 @@ type Stream<'T> = Promise<Hopac.Stream.Cons<'T>>
 type Src<'T> =
     | Src of Hopac.Stream.Src<'T>
 
-    static member inline ToHopac(Src s) : Hopac.Stream.Src<'T> = s
+    static member ToHopac(Src s) : Hopac.Stream.Src<'T> = s
 
 /// <summary>A stream variable.</summary>
 [<Struct>]
 type Var<'T> =
     | Var of Hopac.Stream.Var<'T>
 
-    static member inline ToHopac(Var v) : Hopac.Stream.Var<'T> = v
+    static member ToHopac(Var v) : Hopac.Stream.Var<'T> = v
 
 /// <summary>A stream serialized variable.</summary>
 [<Struct>]
 type StreamMVar<'T> =
     | StreamMVar of Hopac.Stream.MVar<'T>
 
-    static member inline ToHopac(StreamMVar m) : Hopac.Stream.MVar<'T> = m
+    static member ToHopac(StreamMVar m) : Hopac.Stream.MVar<'T> = m
 
 /// <summary>Operations on choice streams.</summary>
 module Stream =

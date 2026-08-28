@@ -7,7 +7,7 @@ module HopacBoundedMb = Hopac.BoundedMb
 type BoundedMb<'T> =
     | BoundedMb of HopacBoundedMb<'T>
 
-    static member inline ToHopac(BoundedMb x) : HopacBoundedMb<'T> = x
+    static member ToHopac(BoundedMb x) : HopacBoundedMb<'T> = x
 
 /// <summary>Operations on bounded synchronous mailboxes.</summary>
 module BoundedMb =

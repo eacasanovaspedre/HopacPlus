@@ -12,7 +12,7 @@ module HopacJob = Hopac.Job
 type Job<'T> =
     | Job of HopacJob<'T>
 
-    static member inline ToHopac(Job j) : HopacJob<'T> = j
+    static member ToHopac(Job j) : HopacJob<'T> = j
 
 /// <summary>Operations on jobs.</summary>
 module Job =

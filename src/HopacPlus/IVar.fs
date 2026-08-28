@@ -7,7 +7,7 @@ module HopacIVar = Hopac.IVar
 type IVar<'T> =
     | IVar of HopacIVar<'T>
 
-    static member inline ToHopac(IVar x) : HopacIVar<'T> = x
+    static member ToHopac(IVar x) : HopacIVar<'T> = x
 
 /// <summary>Operations on write once variables.</summary>
 module IVar =

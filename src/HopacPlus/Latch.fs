@@ -7,7 +7,7 @@ module HopacLatch = Hopac.Latch
 type Latch =
     | Latch of HopacLatch
 
-    static member inline ToHopac(Latch x) : HopacLatch = x
+    static member ToHopac(Latch x) : HopacLatch = x
 
 /// <summary>Operations on latches.</summary>
 module Latch =

@@ -7,7 +7,7 @@ module HopacMVar = Hopac.MVar
 type MVar<'T> =
     | MVar of HopacMVar<'T>
 
-    static member inline ToHopac(MVar x) : HopacMVar<'T> = x
+    static member ToHopac(MVar x) : HopacMVar<'T> = x
 
 /// <summary>Operations on serialized variables.</summary>
 module MVar =

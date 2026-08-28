@@ -13,13 +13,13 @@ module HopacPromise = Hopac.Promise
 type Alt<'T> =
     | Alt of HopacAlt<'T>
 
-    static member inline ToHopac(Alt a) : HopacAlt<'T> = a
+    static member ToHopac(Alt a) : HopacAlt<'T> = a
 
 [<Struct>]
 type Promise<'T> =
     | Promise of HopacPromise<'T>
 
-    static member inline ToHopac(Promise p) : HopacPromise<'T> = p
+    static member ToHopac(Promise p) : HopacPromise<'T> = p
 
 /// <summary>
 /// Operations on first-class synchronous operations or alternatives.
