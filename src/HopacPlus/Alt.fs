@@ -27,7 +27,7 @@ type Promise<'T> =
 module Alt =
     let inline toHopac (x: ^a) : #HopacAlt<'t> = (^a: (static member ToHopac: ^a -> #HopacAlt<'t>) x)
 
-    let inline internal toHopacF ([<InlineIfLambda>] f) x = x |> f |> toHopac
+    let inline toHopacF ([<InlineIfLambda>] f) x = x |> f |> toHopac
 
     /// <summary>
     /// Creates an alternative that is always available and results in the given
