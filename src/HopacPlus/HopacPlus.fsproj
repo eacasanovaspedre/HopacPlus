@@ -1,12 +1,32 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <TargetFrameworks>netstandard2.1;net10.0</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <LangVersion>latest</LangVersion>
+    <PackageId>HopacPlus</PackageId>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">0.1.0</PackageVersion>
+    <Version>$(PackageVersion)</Version>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Authors>Enrique Casanovas</Authors>
+    <Company>The Otter Side</Company>
+    <Description>A wrapper of Hopac that also works with F#+.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>F#;FSharp;Hopac;Hopac+;F#+;FSharpPlus;concurrency</PackageTags>
+    <PackageProjectUrl>https://github.com/eacasanovaspedre/HopacPlus</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/eacasanovaspedre/HopacPlus</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     <Compile Include="Prelude.fs" />
     <Compile Include="Job.fs" />
     <Compile Include="Alt.fs" />
@@ -27,6 +47,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FSharp.Core" Version="6.0.0" />
     <PackageReference Include="Hopac" Version="0.5.1" />
   </ItemGroup>
 
