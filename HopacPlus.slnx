@@ -5,4 +5,7 @@
   <Folder Name="/test/">
     <Project Path="test/HopacPlus.Tests/HopacPlus.Tests.fsproj" />
   </Folder>
+  <Folder Name="/benchmark/">
+    <Project Path="benchmark/HopacPlus.Benchmark/HopacPlus.Benchmark.fsproj" />
+  </Folder>
 </Solution>

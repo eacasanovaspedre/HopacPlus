@@ -60,3 +60,6 @@ nunit-*.xml
 .idea/
 *.user
 *.DotSettings.user
+
+# BenchmarkDotNet
+BenchmarkDotNet.Artifacts/

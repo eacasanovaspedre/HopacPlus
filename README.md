@@ -72,11 +72,19 @@ run (Job.startIgnore producer >>=. consumer) // 3
 
 ## Build and test
 
-Targets `netstandard2.1` and `net11.0`. Tests run with [Expecto](https://github.com/haf/expecto) (sequenced, because Hopac’s global scheduler is shared).
+Targets `netstandard2.1` and `net10.0`. Tests run with [Expecto](https://github.com/haf/expecto) (sequenced, because Hopac’s global scheduler is shared).
 
 ```bash
 dotnet build
 dotnet test
+```
+
+## Benchmarks
+
+Compare `HopacPlus.Job` with native `Hopac.Job`:
+
+```bash
+dotnet run -c Release --project benchmark/HopacPlus.Benchmark
 ```
 
 ## License
