@@ -7,6 +7,7 @@ open Hopac
 module HopacJob = Hopac.Job
 module HopacAlt = Hopac.Alt
 module HopacPromise = Hopac.Promise
+module HopacInfixes = Infixes
 
 /// <summary>An Alt wrapped so FSharpPlus can resolve map / bind / empty / (&lt;|&gt;).</summary>
 [<Struct>]
@@ -286,4 +287,4 @@ type Alt<'T> with
 
     static member inline Empty() : Alt<'T> = Alt.never ()
     static member inline get_Empty() : Alt<'T> = Alt.never ()
-    static member inline (<|>)(Alt x, Alt y) = Infixes.(<|>) x y
+    static member inline (<|>)(Alt x, Alt y) = HopacInfixes.(<|>) x y |> Alt
