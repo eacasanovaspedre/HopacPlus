@@ -3,7 +3,7 @@ namespace HopacPlus
 module NativeHopac = Hopac.Hopac
 
 [<AutoOpen>]
-module Hopac =
+module HopacPlus =
 
     let job = JobBuilder ()
 
@@ -98,3 +98,31 @@ module Hopac =
     /// &lt;| float n</c>.
     /// </summary>
     let inline timeOutMillis n = NativeHopac.timeOutMillis n |> Alt
+    
+    /// <summary>
+    /// Use the object as a job. This function unwraps the underlying Hopac job and wraps it in a Hopac+ Job.
+    /// The actual cost is negligible because the wrappers are all value types and no allocation is done.
+    /// This is almost equivalent to an upcast. 
+    /// </summary>
+    let inline asJob (x: '``Job<'x>``): Job<'x> = Job (Job.toHopac x)
+    
+    /// <summary>
+    /// Turns a function that returns something that is not <c>Job&lt;_></c>, but another type, like <c>Alt&lt;_></c>,
+    /// into a function that returns a job. This is useful given the nature
+    /// of this library, where Alt and all the other Job-like types are not subtypes of Job.
+    /// </summary>
+    let inline asJobF (f: 'x -> '``Job<'y>``) (x: 'x) : Job<'y> = f x |> asJob
+    
+    /// <summary>
+    /// Use the object as an alt. This function unwraps the underlying Hopac alt and wraps it in a Hopac+ Alt.
+    /// The actual cost is negligible because the wrappers are all value types and no allocation is done.
+    /// This is almost equivalent to an upcast. 
+    /// </summary>
+    let inline asAlt (x: '``Alt<'x>``): Alt<'x> = Alt (Alt.toHopac x)
+    
+    /// <summary>
+    /// Turns a function that returns something that is not <c>Alt&lt;_></c>, but another type, like <c>Promise&lt;_></c>,
+    /// into a function that returns an alt. This is useful given the nature
+    /// of this library, where Promise, IVar and all the other Alt-like types are not subtypes of Alt.
+    /// </summary>
+    let inline asAltF (f: 'x -> '``Alt<'y>``) (x: 'x) : Alt<'y> = f x |> asAlt

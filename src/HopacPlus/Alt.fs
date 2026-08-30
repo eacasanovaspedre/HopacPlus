@@ -3,6 +3,7 @@ namespace HopacPlus
 open System.Threading
 open System.Threading.Tasks
 open Hopac
+open HopacPlus
 
 module HopacJob = Hopac.Job
 module HopacAlt = Hopac.Alt
@@ -281,7 +282,8 @@ type Alt<'T> with
     static member inline Return x = Alt.always x
     static member inline Map(x, [<InlineIfLambda>] f) = Alt.afterFun f x
 
-    static member inline (>>=)(x, [<InlineIfLambda>] f) = Alt.afterJob f x
+    //Alt is not a monad
+    //static member inline (>>=)(x, [<InlineIfLambda>] f) = Alt.afterJob f x
 
     static member inline Delay([<InlineIfLambda>] f) = Alt.prepareFun f
 

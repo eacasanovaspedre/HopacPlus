@@ -68,7 +68,7 @@ module Job =
     /// that job to the given function to build another job which will then be
     /// run.  This is the same as <c>&gt;&gt;=</c> with the arguments flipped.
     /// </summary>
-    let inline bind ([<InlineIfLambda>] x2yJ: 'a -> '``Job<'b>``) (x: '``Job<'a>``) =
+    let inline bind ([<InlineIfLambda>] x2yJ: 'x -> '``Job<'y>``) (x: '``Job<'x>``): Job<'y> =
         x |> toHopac |> HopacJob.bind (toHopacF x2yJ) |> Job
 
     /// <summary>

@@ -201,7 +201,7 @@ let inline (>>=*) xJ ([<InlineIfLambda>] x2yJ) =
 /// <c>xJ &gt;&gt;= (x2y &gt;&gt; result)</c>.  This is the same as map with the arguments
 /// flipped.
 /// </summary>
-let inline (>>-) (Job xJ) ([<InlineIfLambda>] x2y) = Job(HopacInfixes.(>>-) xJ x2y)
+let inline (>>-) xJ ([<InlineIfLambda>] x2y) = Job(HopacInfixes.(>>-) (Job.toHopac xJ) x2y)
 
 /// <summary>A memoizing version of <c>&gt;&gt;-</c>.</summary>
 let inline (>>-*) xJ ([<InlineIfLambda>] x2y) = HopacInfixes.(>>-*) (Job.toHopac xJ) x2y
@@ -210,7 +210,7 @@ let inline (>>-*) xJ ([<InlineIfLambda>] x2y) = HopacInfixes.(>>-*) (Job.toHopac
 /// Creates a job that runs the given two jobs and returns the result of the
 /// second job.  <c>xJ &gt;&gt;=. yJ</c> is equivalent to <c>xJ &gt;&gt;= always yJ</c>.
 /// </summary>
-let inline (>>=.) (Job xJ) (Job yJ) = Job(HopacInfixes.(>>=.) xJ yJ)
+let inline (>>=.) xJ yJ = Job(HopacInfixes.(>>=.) (Job.toHopac xJ) (Job.toHopac yJ))
 
 /// <summary>A memoizing version of <c>&gt;&gt;=.</c>.</summary>
 let inline (>>=*.) xJ yJ =
@@ -325,3 +325,8 @@ let inline (<*>) xJ yJ =
 /// </summary>
 let inline (<+>) xA yA =
     Alt(HopacInfixes.(<+>) (Alt.toHopac xA) (Alt.toHopac yA))
+    
+/// <summary>
+/// The same as <c>asJob</c>
+/// </summary>
+let inline (~~) someJob = asJob someJob

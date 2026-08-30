@@ -1,8 +1,8 @@
 module HopacPlus.Tests.FSharpPlusTests
 
 open Expecto
-open FSharpPlus
 open HopacPlus
+open FSharpPlus
 open Helpers
 
 [<Tests>]
@@ -18,17 +18,6 @@ let tests =
                   monad {
                       let! x = Job.result 1
                       let! y = Job.result 2
-                      return x + y
-                  }
-
-              eq 3 (run computed)
-
-          testCase "monad over Alt"
-          <| fun () ->
-              let computed =
-                  monad {
-                      let! x = Alt.always 1
-                      let! y = Alt.always 2
                       return x + y
                   }
 
