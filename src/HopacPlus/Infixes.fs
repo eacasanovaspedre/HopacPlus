@@ -185,11 +185,8 @@ let inline (<~>*) xA1 xA2 =
 /// that job to the given function to build another job which will then be
 /// run.  This is the same as bind with the arguments flipped.
 /// </summary>
-let inline (>>=) (Job xJ) ([<InlineIfLambda>] x2yJ) =
-    Job(HopacInfixes.(>>=) xJ (fun a -> let (Job y) = x2yJ a in y))
-
-let inline megaBind xJ ([<InlineIfLambda>] x2yJ) =
-    Job(HopacInfixes.(>>=) (Job.toHopac xJ) (fun a -> let (Job y) = x2yJ a in y))
+let inline (>>=) xJ ([<InlineIfLambda>] x2yJ) =
+    Job(HopacInfixes.(>>=) (Job.toHopac xJ) (Job.toHopacF x2yJ))
 
 /// <summary>A memoizing version of <c>&gt;&gt;=</c>.</summary>
 let inline (>>=*) xJ ([<InlineIfLambda>] x2yJ) =
@@ -220,7 +217,7 @@ let inline (>>=*.) xJ yJ =
 /// Creates a job that runs the given job and then returns the given value.
 /// <c>xJ &gt;&gt;-. y</c> is an optimized version of <c>xJ &gt;&gt;= always (result y)</c>.
 /// </summary>
-let inline (>>-.) (Job xJ) y = Job(HopacInfixes.(>>-.) xJ y)
+let inline (>>-.) xJ y = Job(HopacInfixes.(>>-.) (Job.toHopac xJ) y)
 
 /// <summary>A memoizing version of <c>&gt;&gt;-.</c>.</summary>
 let inline (>>-*.) xJ y = HopacInfixes.(>>-*.) (Job.toHopac xJ) y
@@ -229,7 +226,7 @@ let inline (>>-*.) xJ y = HopacInfixes.(>>-*.) (Job.toHopac xJ) y
 /// Creates a job that runs the given job and then raises the given exception.
 /// <c>xJ &gt;&gt;-! e</c> is equivalent to <c>xJ &gt;&gt;= fun _ -&gt; raise e</c>.
 /// </summary>
-let inline (>>-!) (Job xJ) e = Job(HopacInfixes.(>>-!) xJ e)
+let inline (>>-!) xJ e = Job(HopacInfixes.(>>-!) (Job.toHopac xJ) e)
 
 /// <summary>A memoizing version of <c>&gt;&gt;-!</c>.</summary>
 let inline (>>-*!) xJ e = HopacInfixes.(>>-*!) (Job.toHopac xJ) e
@@ -242,12 +239,7 @@ let inline (>>-*!) xJ e = HopacInfixes.(>>-*!) (Job.toHopac xJ) e
 /// the <c>&gt;&gt;</c> operator on ordinary functions.
 /// </summary>
 let inline (>=>) ([<InlineIfLambda>] x2yJ) ([<InlineIfLambda>] y2zJ) x =
-    Job(
-        HopacInfixes.(>=>)
-            (fun a -> let (Job y) = x2yJ a in y)
-            (fun b -> let (Job z) = y2zJ b in z)
-            x
-    )
+    Job(HopacInfixes.(>=>) (Job.toHopacF x2yJ) (Job.toHopacF y2zJ) x)
 
 /// <summary>A memoizing version of <c>&gt;=&gt;</c>.</summary>
 let inline (>=>*) ([<InlineIfLambda>] x2yJ) ([<InlineIfLambda>] y2zJ) x =
@@ -259,7 +251,7 @@ let inline (>=>*) ([<InlineIfLambda>] x2yJ) ([<InlineIfLambda>] y2zJ) x =
 /// much like the <c>&gt;&gt;</c> operator on ordinary functions.
 /// </summary>
 let inline (>->) ([<InlineIfLambda>] x2yJ) ([<InlineIfLambda>] y2z) x =
-    Job(HopacInfixes.(>->) (fun a -> let (Job y) = x2yJ a in y) y2z x)
+    Job(HopacInfixes.(>->) (Job.toHopacF x2yJ) y2z x)
 
 /// <summary>A memoizing version of <c>&gt;-&gt;</c>.</summary>
 let inline (>->*) ([<InlineIfLambda>] x2yJ) ([<InlineIfLambda>] y2z) x =
@@ -269,8 +261,7 @@ let inline (>->*) ([<InlineIfLambda>] x2yJ) ([<InlineIfLambda>] y2z) x =
 /// <c>(x2yJ &gt;=&gt;. zJ) x</c> is equivalent to <c>x2yJ x &gt;&gt;=. zJ</c>.
 /// </summary>
 let inline (>=>.) ([<InlineIfLambda>] x2yJ) zJ x =
-    let (Job z) = zJ
-    Job(HopacInfixes.(>=>.) (fun a -> let (Job y) = x2yJ a in y) z x)
+    Job(HopacInfixes.(>=>.) (Job.toHopacF x2yJ) (Job.toHopac zJ) x)
 
 /// <summary>A memoizing version of <c>&gt;=&gt;.</c>.</summary>
 let inline (>=>*.) ([<InlineIfLambda>] x2yJ) zJ x =
@@ -280,7 +271,7 @@ let inline (>=>*.) ([<InlineIfLambda>] x2yJ) zJ x =
 /// <c>(x2yJ &gt;-&gt;. z) x</c> is equivalent to <c>x2yJ x &gt;&gt;-. z</c>.
 /// </summary>
 let inline (>->.) ([<InlineIfLambda>] x2yJ) z x =
-    Job(HopacInfixes.(>->.) (fun a -> let (Job y) = x2yJ a in y) z x)
+    Job(HopacInfixes.(>->.) (Job.toHopacF x2yJ) z x)
 
 /// <summary>A memoizing version of <c>&gt;-&gt;.</c>.</summary>
 let inline (>->*.) ([<InlineIfLambda>] x2yJ) z x = HopacInfixes.(>->*.) (Job.toHopacF x2yJ) z x
@@ -289,7 +280,7 @@ let inline (>->*.) ([<InlineIfLambda>] x2yJ) z x = HopacInfixes.(>->*.) (Job.toH
 /// <c>(x2yJ &gt;-&gt;! e) x</c> is equivalent to <c>x2yJ x &gt;&gt;-! e</c>.
 /// </summary>
 let inline (>->!) ([<InlineIfLambda>] x2yJ) e x =
-    Job(HopacInfixes.(>->!) (fun a -> let (Job y) = x2yJ a in y) e x)
+    Job(HopacInfixes.(>->!) (Job.toHopacF x2yJ) e x)
 
 /// <summary>A memoizing version of <c>&gt;-&gt;!</c>.</summary>
 let inline (>->*!) ([<InlineIfLambda>] x2yJ) e x = HopacInfixes.(>->*!) (Job.toHopacF x2yJ) e x
@@ -302,9 +293,7 @@ let inline (>->*!) ([<InlineIfLambda>] x2yJ) e x = HopacInfixes.(>->*!) (Job.toH
 /// <c>xJ &gt;&gt;= fun x -&gt; yJ &gt;&gt;= fun y -&gt; result (x, y)</c>.
 /// </summary>
 let inline (<&>) xJ yJ =
-    let (Job x) = xJ
-    let (Job y) = yJ
-    Job(HopacInfixes.(<&>) x y)
+    Job(HopacInfixes.(<&>) (Job.toHopac xJ) (Job.toHopac yJ))
 
 /// <summary>
 /// Creates a job that either runs the given jobs sequentially, like
@@ -313,9 +302,7 @@ let inline (<&>) xJ yJ =
 /// apply.
 /// </summary>
 let inline (<*>) xJ yJ =
-    let (Job x) = xJ
-    let (Job y) = yJ
-    Job(HopacInfixes.(<*>) x y)
+    Job(HopacInfixes.(<*>) (Job.toHopac xJ) (Job.toHopac yJ))
 
 /// <summary>
 /// An alternative that is equivalent to first committing to either one of the

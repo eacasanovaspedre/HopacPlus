@@ -13,6 +13,8 @@ let tests =
         [ testCase "sequencing"
           <| fun () ->
               eq 2 (run (Job.result 1 >>= fun x -> Job.result (x + 1)))
+              eq 2 (run (Alt.always 1 >>= fun x -> Job.result (x + 1)))
+              eq 2 (run (Job.result 1 >>= fun x -> Alt.always (x + 1)))
 
               eq
                   2
@@ -24,9 +26,14 @@ let tests =
                   ))
 
               eq 2 (run (Job.result 1 >>- ((+) 1)))
+              eq 2 (run (Alt.always 1 >>- ((+) 1)))
               eq 2 (run (Job.result () >>=. Job.result 2))
+              eq 2 (run (Alt.always () >>=. Job.result 2))
+              eq 2 (run (Job.result () >>=. Alt.always 2))
               eq 2 (run (Job.result "x" >>-. 2))
+              eq 2 (run (Alt.always "x" >>-. 2))
               throws (Job.result () >>-! TestExn "e")
+              throws (Alt.always () >>-! TestExn "e")
 
           testCase "memo sequencing"
           <| fun () ->
@@ -39,10 +46,17 @@ let tests =
           testCase "composition"
           <| fun () ->
               eq 2 (run ((Job.result >=> fun x -> Job.result (x + 1)) 1))
+              eq 2 (run ((Alt.always >=> fun x -> Job.result (x + 1)) 1))
+              eq 2 (run ((Job.result >=> fun x -> Alt.always (x + 1)) 1))
               eq 2 (run ((Job.result >-> ((+) 1)) 1))
+              eq 2 (run ((Alt.always >-> ((+) 1)) 1))
               eq 2 (run ((Job.result >=>. Job.result 2) ()))
+              eq 2 (run ((Alt.always >=>. Job.result 2) ()))
+              eq 2 (run ((Job.result >=>. Alt.always 2) ()))
               eq 2 (run ((Job.result >->. 2) ()))
+              eq 2 (run ((Alt.always >->. 2) ()))
               throws ((Job.result >->! TestExn "e") ())
+              throws ((Alt.always >->! TestExn "e") ())
 
           testCase "memo composition"
           <| fun () ->
@@ -55,7 +69,11 @@ let tests =
           testCase "pairing"
           <| fun () ->
               eq (1, 2) (run (Job.result 1 <&> Job.result 2))
+              eq (1, 2) (run (Alt.always 1 <&> Job.result 2))
+              eq (1, 2) (run (Job.result 1 <&> Alt.always 2))
               eq (1, 2) (run (Job.result 1 <*> Job.result 2))
+              eq (1, 2) (run (Alt.always 1 <*> Job.result 2))
+              eq (1, 2) (run (Job.result 1 <*> Alt.always 2))
               eq (1, 2) (run (Alt.always 1 <+> Alt.always 2))
 
           testCase "alt after"
