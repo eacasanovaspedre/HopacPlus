@@ -225,6 +225,35 @@ module Job =
         usingAsync' resource1 (fun r1 -> usingAsync' resource2 (fun r2 -> xs2yJ (r1, r2)))
 
     /// <summary>
+    /// Like <c>usingAsync</c>, but the resource is produced by a job.
+    /// <c>usingAsyncJob xJ x2yJ</c> is equivalent to
+    /// <c>bind (fun x -&gt; usingAsync x x2yJ) xJ</c>.  If <c>xJ</c> fails, the body
+    /// is not run and nothing is disposed.  See also: usingAsync, usingAsyncJob'.
+    /// </summary>
+    let inline usingAsyncJob (xJ: '``Job<'x>``) ([<InlineIfLambda>] x2yJ: 'x -> '``Job<'y>``) : Job<'y> =
+        bind (fun x -> usingAsync x x2yJ) xJ
+
+    /// <summary>
+    /// Like <c>usingAsync'</c>, but the resource is produced by a job.
+    /// <c>usingAsyncJob' xJ x2yJ</c> is equivalent to
+    /// <c>bind (fun x -&gt; usingAsync' x x2yJ) xJ</c>.  If <c>xJ</c> fails, the body
+    /// is not run and nothing is disposed.  See also: usingAsync', usingAsyncJob''.
+    /// </summary>
+    let inline usingAsyncJob' (xJ: '``Job<'x>``) ([<InlineIfLambda>] x2yJ: 'x -> '``Job<'y>``) : Job<'y> =
+        bind (fun x -> usingAsync' x x2yJ) xJ
+
+    /// <summary>
+    /// Like nested <c>usingAsyncJob'</c> over two jobs that produce
+    /// <c>System.IAsyncDisposable</c> resources.  Equivalent to
+    /// <c>usingAsyncJob' x1J (fun r1 -&gt; usingAsyncJob' x2J (fun r2 -&gt; xs2yJ (r1, r2)))</c>.
+    /// Resources are acquired in order; if the second acquire fails, the first
+    /// resource is still disposed.  Disposal is reverse-order and sequential.
+    /// See also: usingAsync'', usingAsyncJob'.
+    /// </summary>
+    let inline usingAsyncJob'' (x1J: '``Job<'x1>``) (x2J: '``Job<'x2>``) ([<InlineIfLambda>] xs2yJ: 'x1 * 'x2 -> '``Job<'y>``) : Job<'y> =
+        usingAsyncJob' x1J (fun r1 -> usingAsyncJob' x2J (fun r2 -> xs2yJ (r1, r2)))
+
+    /// <summary>
     /// <c>useIn x2yJ x</c> is equivalent to <c>using x x2yJ</c> and can be more convenient
     /// to use in pipelines (i.e. <c>x |&gt; useIn x2yJ</c>).
     /// </summary>

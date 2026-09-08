@@ -175,6 +175,120 @@ let tests =
                     "1-finish" ]
                   (List.ofSeq log)
 
+          testCase "usingAsyncJob usingAsyncJob' usingAsyncJob''"
+          <| fun () ->
+              let log = ResizeArray<string>()
+
+              let resource name delayMs disposeExn =
+                  { new IAsyncDisposable with
+                      member _.DisposeAsync() =
+                          log.Add(name + "-start")
+
+                          ValueTask(
+                              task {
+                                  if delayMs > 0 then
+                                      do! Task.Delay delayMs
+
+                                  match disposeExn with
+                                  | Some e -> raise e
+                                  | None -> log.Add(name + "-finish")
+                              }
+                          ) }
+
+              let acquire name delayMs disposeExn =
+                  Job.thunk (fun () ->
+                      log.Add(name + "-acquire")
+                      resource name delayMs disposeExn)
+
+              let hopacResource name =
+                  { new Hopac.IAsyncDisposable with
+                      member _.DisposeAsync() =
+                          Hopac.Job.thunk (fun () ->
+                              log.Add(name + "-start")
+                              log.Add(name + "-finish")) }
+
+              log.Clear()
+
+              eq
+                  1
+                  (run (
+                      Job.usingAsyncJob
+                          (Job.thunk (fun () ->
+                              log.Add "h-acquire"
+                              hopacResource "h"))
+                          (fun _ -> Job.result 1)
+                  ))
+
+              eq
+                  [ "h-acquire"
+                    "h-start"
+                    "h-finish" ]
+                  (List.ofSeq log)
+
+              log.Clear()
+              eq 1 (run (Job.usingAsyncJob' (acquire "r" 0 None) (fun _ -> Job.result 1)))
+
+              eq
+                  [ "r-acquire"
+                    "r-start"
+                    "r-finish" ]
+                  (List.ofSeq log)
+
+              log.Clear()
+              throws (Job.usingAsyncJob' (Job.raises (TestExn "acquire")) (fun _ -> Job.result 1))
+              eq [] (List.ofSeq log)
+
+              log.Clear()
+              throws (Job.usingAsyncJob' (acquire "r" 0 None) (fun _ -> Job.raises (TestExn "e")))
+
+              eq
+                  [ "r-acquire"
+                    "r-start"
+                    "r-finish" ]
+                  (List.ofSeq log)
+
+              log.Clear()
+
+              eq
+                  1
+                  (run (Job.usingAsyncJob'' (acquire "1" 0 None) (acquire "2" 0 None) (fun _ -> Job.result 1)))
+
+              eq
+                  [ "1-acquire"
+                    "2-acquire"
+                    "2-start"
+                    "2-finish"
+                    "1-start"
+                    "1-finish" ]
+                  (List.ofSeq log)
+
+              log.Clear()
+
+              throws (
+                  Job.usingAsyncJob''
+                      (acquire "1" 0 None)
+                      (Job.raises (TestExn "acquire2"))
+                      (fun _ -> Job.result 1)
+              )
+
+              eq
+                  [ "1-acquire"
+                    "1-start"
+                    "1-finish" ]
+                  (List.ofSeq log)
+
+              log.Clear()
+              throws (Job.usingAsyncJob'' (acquire "1" 0 None) (acquire "2" 0 None) (fun _ -> Job.raises (TestExn "e")))
+
+              eq
+                  [ "1-acquire"
+                    "2-acquire"
+                    "2-start"
+                    "2-finish"
+                    "1-start"
+                    "1-finish" ]
+                  (List.ofSeq log)
+
           testCase "loops"
           <| fun () ->
               let n = ref 0
