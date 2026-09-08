@@ -200,6 +200,31 @@ module Job =
         HopacJob.usingAsync resource (toHopacF x2yJ) |> Job
 
     /// <summary>
+    /// Implements a <c>use</c> like construct for <c>System.IAsyncDisposable</c>
+    /// resources.  After the body job completes or fails, <c>DisposeAsync</c> is
+    /// invoked via <c>Job.fromUnitTask</c> and awaited.  Unlike <c>usingAsync</c>, this
+    /// takes <c>System.IAsyncDisposable</c> (<c>unit -&gt; ValueTask</c>) rather than
+    /// Hopac's <c>IAsyncDisposable</c> (<c>unit -&gt; Job&lt;unit&gt;</c>).  Disposal always
+    /// runs; a failing dispose replaces the body exception, matching
+    /// <c>tryFinallyJob</c>.  See also: abort, using, usingAsync, usingAsync''.
+    /// </summary>
+    let inline usingAsync' (resource: 'x when 'x :> System.IAsyncDisposable) ([<InlineIfLambda>] x2yJ: 'x -> '``Job<'y>``) : Job<'y> =
+        HopacJob.tryFinallyJob
+            (HopacJob.delayWith (toHopacF x2yJ) resource)
+            (HopacJob.fromUnitTask (fun () -> resource.DisposeAsync().AsTask()))
+        |> Job
+
+    /// <summary>
+    /// Like nested <c>usingAsync'</c> over two <c>System.IAsyncDisposable</c>
+    /// resources.  Equivalent to
+    /// <c>usingAsync' resource1 (fun r1 -&gt; usingAsync' resource2 (fun r2 -&gt; xs2yJ (r1, r2)))</c>.
+    /// Disposal is reverse-order and sequential: <c>resource2</c> is disposed to
+    /// completion before <c>resource1</c> starts disposing.  See also: usingAsync'.
+    /// </summary>
+    let inline usingAsync'' (resource1: 'x1 when 'x1 :> System.IAsyncDisposable) (resource2: 'x2 when 'x2 :> System.IAsyncDisposable) ([<InlineIfLambda>] xs2yJ: 'x1 * 'x2 -> '``Job<'y>``) : Job<'y> =
+        usingAsync' resource1 (fun r1 -> usingAsync' resource2 (fun r2 -> xs2yJ (r1, r2)))
+
+    /// <summary>
     /// <c>useIn x2yJ x</c> is equivalent to <c>using x x2yJ</c> and can be more convenient
     /// to use in pipelines (i.e. <c>x |&gt; useIn x2yJ</c>).
     /// </summary>

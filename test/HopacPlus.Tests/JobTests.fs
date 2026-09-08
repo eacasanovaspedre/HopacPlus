@@ -94,6 +94,87 @@ let tests =
               eq 1 (run (Job.useIn (fun _ -> Job.result 1) resource))
               Expect.isTrue disposed.Value ""
 
+          testCase "usingAsync' usingAsync''"
+          <| fun () ->
+              let log = ResizeArray<string>()
+
+              let resource name delayMs disposeExn =
+                  { new IAsyncDisposable with
+                      member _.DisposeAsync() =
+                          log.Add(name + "-start")
+
+                          ValueTask(
+                              task {
+                                  if delayMs > 0 then
+                                      do! Task.Delay delayMs
+
+                                  match disposeExn with
+                                  | Some e -> raise e
+                                  | None -> log.Add(name + "-finish")
+                              }
+                          ) }
+
+              log.Clear()
+              eq 1 (run (Job.usingAsync' (resource "r" 0 None) (fun _ -> Job.result 1)))
+              eq
+                  [ "r-start"
+                    "r-finish" ]
+                  (List.ofSeq log)
+
+              log.Clear()
+              throws (Job.usingAsync' (resource "r" 0 None) (fun _ -> Job.raises (TestExn "e")))
+              eq
+                  [ "r-start"
+                    "r-finish" ]
+                  (List.ofSeq log)
+
+              log.Clear()
+              throws (Job.usingAsync' (resource "r" 0 (Some(TestExn "dispose"))) (fun _ -> Job.result 1))
+              eq [ "r-start" ] (List.ofSeq log)
+
+              log.Clear()
+
+              eq
+                  1
+                  (run (
+                      Job.usingAsync''
+                          (resource "1" 20 None)
+                          (resource "2" 20 None)
+                          (fun _ -> Job.result 1)
+                  ))
+
+              eq
+                  [ "2-start"
+                    "2-finish"
+                    "1-start"
+                    "1-finish" ]
+                  (List.ofSeq log)
+
+              log.Clear()
+              throws (Job.usingAsync'' (resource "1" 0 None) (resource "2" 0 None) (fun _ -> Job.raises (TestExn "e")))
+
+              eq
+                  [ "2-start"
+                    "2-finish"
+                    "1-start"
+                    "1-finish" ]
+                  (List.ofSeq log)
+
+              log.Clear()
+
+              throws (
+                  Job.usingAsync''
+                      (resource "1" 0 None)
+                      (resource "2" 0 (Some(TestExn "dispose2")))
+                      (fun _ -> Job.result 1)
+              )
+
+              eq
+                  [ "2-start"
+                    "1-start"
+                    "1-finish" ]
+                  (List.ofSeq log)
+
           testCase "loops"
           <| fun () ->
               let n = ref 0
