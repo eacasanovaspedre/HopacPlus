@@ -139,7 +139,7 @@ let tests =
                   (run (
                       Job.usingAsync''
                           (resource "1" 20 None)
-                          (resource "2" 20 None)
+                          (fun _ -> resource "2" 20 None)
                           (fun _ -> Job.result 1)
                   ))
 
@@ -151,7 +151,21 @@ let tests =
                   (List.ofSeq log)
 
               log.Clear()
-              throws (Job.usingAsync'' (resource "1" 0 None) (resource "2" 0 None) (fun _ -> Job.raises (TestExn "e")))
+              let r1 = resource "1" 0 None
+
+              eq
+                  1
+                  (run (
+                      Job.usingAsync''
+                          r1
+                          (fun x ->
+                              Expect.equal x r1 ""
+                              resource "2" 0 None)
+                          (fun _ -> Job.result 1)
+                  ))
+
+              log.Clear()
+              throws (Job.usingAsync'' (resource "1" 0 None) (fun _ -> resource "2" 0 None) (fun _ -> Job.raises (TestExn "e")))
 
               eq
                   [ "2-start"
@@ -165,7 +179,7 @@ let tests =
               throws (
                   Job.usingAsync''
                       (resource "1" 0 None)
-                      (resource "2" 0 (Some(TestExn "dispose2")))
+                      (fun _ -> resource "2" 0 (Some(TestExn "dispose2")))
                       (fun _ -> Job.result 1)
               )
 
@@ -251,7 +265,7 @@ let tests =
 
               eq
                   1
-                  (run (Job.usingAsyncJob'' (acquire "1" 0 None) (acquire "2" 0 None) (fun _ -> Job.result 1)))
+                  (run (Job.usingAsyncJob'' (acquire "1" 0 None) (fun _ -> acquire "2" 0 None) (fun _ -> Job.result 1)))
 
               eq
                   [ "1-acquire"
@@ -263,11 +277,40 @@ let tests =
                   (List.ofSeq log)
 
               log.Clear()
+              let r1 = resource "1" 0 None
+
+              eq
+                  1
+                  (run (
+                      Job.usingAsyncJob''
+                          (Job.result r1)
+                          (fun x ->
+                              Expect.equal x r1 ""
+                              acquire "2" 0 None)
+                          (fun _ -> Job.result 1)
+                  ))
+
+              log.Clear()
+              let built2 = ref false
+
+              throws (
+                  Job.usingAsyncJob''
+                      (Job.raises (TestExn "acquire1"))
+                      (fun _ ->
+                          built2 := true
+                          acquire "2" 0 None)
+                      (fun _ -> Job.result 1)
+              )
+
+              Expect.isFalse built2.Value ""
+              eq [] (List.ofSeq log)
+
+              log.Clear()
 
               throws (
                   Job.usingAsyncJob''
                       (acquire "1" 0 None)
-                      (Job.raises (TestExn "acquire2"))
+                      (fun _ -> Job.raises (TestExn "acquire2"))
                       (fun _ -> Job.result 1)
               )
 
@@ -278,7 +321,7 @@ let tests =
                   (List.ofSeq log)
 
               log.Clear()
-              throws (Job.usingAsyncJob'' (acquire "1" 0 None) (acquire "2" 0 None) (fun _ -> Job.raises (TestExn "e")))
+              throws (Job.usingAsyncJob'' (acquire "1" 0 None) (fun _ -> acquire "2" 0 None) (fun _ -> Job.raises (TestExn "e")))
 
               eq
                   [ "1-acquire"

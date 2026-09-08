@@ -216,13 +216,14 @@ module Job =
 
     /// <summary>
     /// Like nested <c>usingAsync'</c> over two <c>System.IAsyncDisposable</c>
-    /// resources.  Equivalent to
-    /// <c>usingAsync' resource1 (fun r1 -&gt; usingAsync' resource2 (fun r2 -&gt; xs2yJ (r1, r2)))</c>.
-    /// Disposal is reverse-order and sequential: <c>resource2</c> is disposed to
-    /// completion before <c>resource1</c> starts disposing.  See also: usingAsync'.
+    /// resources.  The second resource is built from the first, so it can
+    /// depend on it.  Equivalent to
+    /// <c>usingAsync' resource1 (fun r1 -&gt; usingAsync' (x12x2 r1) (fun r2 -&gt; xs2yJ (r1, r2)))</c>.
+    /// Disposal is reverse-order and sequential: the second resource is disposed
+    /// to completion before the first starts disposing.  See also: usingAsync'.
     /// </summary>
-    let inline usingAsync'' (resource1: 'x1 when 'x1 :> System.IAsyncDisposable) (resource2: 'x2 when 'x2 :> System.IAsyncDisposable) ([<InlineIfLambda>] xs2yJ: 'x1 * 'x2 -> '``Job<'y>``) : Job<'y> =
-        usingAsync' resource1 (fun r1 -> usingAsync' resource2 (fun r2 -> xs2yJ (r1, r2)))
+    let inline usingAsync'' (resource1: 'x1 when 'x1 :> System.IAsyncDisposable) ([<InlineIfLambda>] x12x2: 'x1 -> 'x2) ([<InlineIfLambda>] xs2yJ: 'x1 * 'x2 -> '``Job<'y>``) : Job<'y> =
+        usingAsync' resource1 (fun r1 -> usingAsync' (x12x2 r1) (fun r2 -> xs2yJ (r1, r2)))
 
     /// <summary>
     /// Like <c>usingAsync</c>, but the resource is produced by a job.
@@ -244,14 +245,15 @@ module Job =
 
     /// <summary>
     /// Like nested <c>usingAsyncJob'</c> over two jobs that produce
-    /// <c>System.IAsyncDisposable</c> resources.  Equivalent to
-    /// <c>usingAsyncJob' x1J (fun r1 -&gt; usingAsyncJob' x2J (fun r2 -&gt; xs2yJ (r1, r2)))</c>.
+    /// <c>System.IAsyncDisposable</c> resources.  The second job is built from the
+    /// first resource, so it can depend on it.  Equivalent to
+    /// <c>usingAsyncJob' x1J (fun r1 -&gt; usingAsyncJob' (x12x2J r1) (fun r2 -&gt; xs2yJ (r1, r2)))</c>.
     /// Resources are acquired in order; if the second acquire fails, the first
     /// resource is still disposed.  Disposal is reverse-order and sequential.
     /// See also: usingAsync'', usingAsyncJob'.
     /// </summary>
-    let inline usingAsyncJob'' (x1J: '``Job<'x1>``) (x2J: '``Job<'x2>``) ([<InlineIfLambda>] xs2yJ: 'x1 * 'x2 -> '``Job<'y>``) : Job<'y> =
-        usingAsyncJob' x1J (fun r1 -> usingAsyncJob' x2J (fun r2 -> xs2yJ (r1, r2)))
+    let inline usingAsyncJob'' (x1J: '``Job<'x1>``) ([<InlineIfLambda>] x12x2J: 'x1 -> '``Job<'x2>``) ([<InlineIfLambda>] xs2yJ: 'x1 * 'x2 -> '``Job<'y>``) : Job<'y> =
+        usingAsyncJob' x1J (fun r1 -> usingAsyncJob' (x12x2J r1) (fun r2 -> xs2yJ (r1, r2)))
 
     /// <summary>
     /// <c>useIn x2yJ x</c> is equivalent to <c>using x x2yJ</c> and can be more convenient
